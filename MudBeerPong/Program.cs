@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
 using MudBeerPong.Components;
 using MudBeerPong.Components.Account;
 using MudBeerPong.Data;
@@ -12,6 +13,9 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        // Add MudBlazor services
+        builder.Services.AddMudServices();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -29,9 +33,11 @@ public class Program
             })
             .AddIdentityCookies();
 
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        bool isDevelopment = builder.Environment.IsDevelopment();
+
+		var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseAzureSql(connectionString, opt => opt.EnableRetryOnFailure()).EnableSensitiveDataLogging(isDevelopment).EnableDetailedErrors(isDevelopment));
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
         builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)

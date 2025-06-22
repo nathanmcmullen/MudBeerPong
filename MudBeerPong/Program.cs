@@ -5,6 +5,7 @@ using MudBlazor.Services;
 using MudBeerPong.Components;
 using MudBeerPong.Components.Account;
 using MudBeerPong.Data;
+using MudExtensions.Services;
 
 namespace MudBeerPong;
 
@@ -16,15 +17,17 @@ public class Program
 
         // Add MudBlazor services
         builder.Services.AddMudServices();
+        builder.Services.AddMudExtensions();
 
-        // Add services to the container.
-        builder.Services.AddRazorComponents()
+		// Add services to the container.
+		builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
         builder.Services.AddCascadingAuthenticationState();
         builder.Services.AddScoped<IdentityUserAccessor>();
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
 
         builder.Services.AddAuthentication(options =>
             {
@@ -36,7 +39,7 @@ public class Program
         bool isDevelopment = builder.Environment.IsDevelopment();
 
 		var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             options.UseAzureSql(connectionString, opt => opt.EnableRetryOnFailure()).EnableSensitiveDataLogging(isDevelopment).EnableDetailedErrors(isDevelopment));
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

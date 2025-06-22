@@ -1,0 +1,81 @@
+﻿@page "/game/new"
+@using MudBeerPong.Data.Models
+
+@inject ISnackbar Snackbar
+
+@rendermode InteractiveServer
+
+<PageTitle>New Game</PageTitle>
+<BeerPongBoardLayout Cups="@StandardBoardLayouts.ThreeBase" EditMode="true" />
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" md="6" lg="4">
+
+        <MudText Typo="Typo.h3" GutterBottom="true">New Game</MudText>
+        <MudStepper Vertical ShowResetButton NonLinear OnPreviewInteraction="OnPreviewInteraction">
+            <MudStep Title="Teams">
+                <MudComboBox @bind-SelectedValues="newTeam.Players"
+                             @bind-SelectedValues:after="OnPlayersChanged"
+                             Label="Players"
+                             Placeholder="Start typing to search or add players..."
+                             OnOpen="@(() => playerSearchString = string.Empty)"
+                             MultiSelection Editable Clearable ChipCloseable
+                             InputPresenter="ValuePresenter.Chip"
+                             ToStringFunc="@(p => p?.Name ?? string.Empty)"
+                             SearchFunc="SearchPlayer">
+                    <ChildContent>
+                        @if (playerSearchString.Length > 1 && PlayerNameUnique(playerSearchString))
+                        {
+                            <MudMenuItem OnClick="AddPlayer">Add '<b>@playerSearchString</b>'</MudMenuItem>
+                        }
+                        @foreach (var player in existingPlayers)
+                        {
+                            <MudComboBoxItem Disabled="@(PlayerAlreadyAssigned(player))" Value="@player">@player.Name</MudComboBoxItem>
+                        }
+                    </ChildContent>
+                </MudComboBox>
+                <MudAutocomplete @bind-Value="newTeam.Name"
+                                 @bind-Value:after="SetPlayersForExistingTeam"
+                                 Label="Team Name"
+                                 ItemDisabledFunc="TeamAlreadyAssigned"
+                                 Placeholder="Start typing to search or add a team name..."
+                                 Clearable Class="my-4" Disabled="teamNameDisabled"
+                                 CoerceText="false" CoerceValue ResetValueOnEmptyText 
+                                 ToStringFunc="@(t => t ?? string.Empty)"
+                                 SearchFunc="SearchTeams" />
+
+                <MudToolBar Gutters="false">
+                    <MudSpacer />
+                    <MudButton Variant="Variant.Text" Class="mr-2" Color="Color.Error" OnClick="ResetTeamFields">Reset</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddTeam">Add</MudButton>
+                </MudToolBar>
+
+                <!--Display teams-->
+                <MudList T="string">
+                    @foreach (var team in _game.Teams ?? [])
+                    {
+                        <MudListItem> 
+                            <ChildContent>
+                                <MudStack Row>
+
+                                <MudText Class="align-self-center" Typo="Typo.h6" Align="Align.Center">@team.Name</MudText>
+                                <MudTooltip Class="align-contents-center" Text="@(string.Join(", ", team.Players?.Select(p => p.Name) ?? []))">
+                                    <MudChip Color="Color.Info" Size="Size.Small" Class="ml-2">@team.Players?.Count()</MudChip>
+                                </MudTooltip>
+                                <MudSpacer />
+                                    <MudIconButton Style="padding:4px;" Icon="@Icons.Material.Filled.RemoveCircle" Color="Color.Error" OnClick="@(() => DeselectTeam(team))" />
+                                </MudStack>
+                        </ChildContent>
+                        </MudListItem>
+                    }
+                    </MudList>
+            </MudStep>
+            <MudStep Title="Boards">
+                
+            </MudStep>
+        </MudStepper>
+
+    </MudItem>
+</MudGrid>
+
+
+

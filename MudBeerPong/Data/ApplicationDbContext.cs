@@ -6,10 +6,10 @@ namespace MudBeerPong.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
-	DbSet<Game> Games { get; set; } = null!;
-	DbSet<Team> Teams { get; set; } = null!;
-	DbSet<Player> Players { get; set; } = null!;
-	DbSet<Shot> Shots { get; set; } = null!;
+	public DbSet<Game> Games { get; set; } = null!;
+	public DbSet<Team> Teams { get; set; } = null!;
+	public DbSet<Player> Players { get; set; } = null!;
+	public DbSet<Shot> Shots { get; set; } = null!;
 
 
 	protected override void OnModelCreating(ModelBuilder builder)

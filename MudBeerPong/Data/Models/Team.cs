@@ -8,8 +8,13 @@ namespace MudBeerPong.Data.Models
 
         public List<Game>? Games { get; set; } = new List<Game>();
 
-        public List<Player>? Players { get; set; } = new List<Player>();
+        public IEnumerable<Player>? Players { get; set; } = new List<Player>();
 
         public string? Name { get; set; }
-    }
+
+		public override string ToString()
+		{
+			return Name ?? "Unnamed Player";
+		}
+	}
 }

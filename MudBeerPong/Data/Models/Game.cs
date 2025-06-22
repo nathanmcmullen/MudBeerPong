@@ -3,9 +3,9 @@
     public partial class Game
     {
         public Guid Id { get; set; }
-        public List<Team>? Teams { get; set; } = new List<Team>();
+        public List<Team>? Teams { get; set; } 
 
-        public List<Shot>? Shots { get; set; } = new List<Shot>();
+        public List<Shot>? Shots { get; set; }
 
         public string? Name { get; set; }
 

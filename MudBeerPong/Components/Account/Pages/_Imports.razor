@@ -1,3 +1,6 @@
-﻿@using MudBlazor
+﻿@using Microsoft.AspNetCore.Authorization
+@using MudBlazor
 @using MudBeerPong.Components.Account.Shared
+@layout Layout.EmptyLayout
 @attribute [ExcludeFromInteractiveRouting]
+@attribute [AllowAnonymous]

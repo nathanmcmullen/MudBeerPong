@@ -8,14 +8,33 @@ namespace MudBeerPong.Data.Models
 
         public Game Game { get; set; }
 
+        public Team ShootingTeam { get; set; } // The team that made the shot.
+
+		public Team TargetTeam { get; set; } // The team that was shot at. 
+
 
 		/// <summary>
-		/// Player who made the shot. May be null if the player is not tracked in the system (e.g., anonymous players, deleted players, etc.)
+		/// Player who made the shot. May be null in the following cases:
+		/// <list type="bullet">
+		/// <item>
+		/// <description>The player is not tracked by the system (e.g. anonymous, spectator).</description>
+		/// </item>
+		/// <item>
+		/// <description>The player was deleted after the game, and the shot records still remain.</description>
+		/// </item>
+		/// <item>
+		/// <description>The shot represents a penalty or other hit type that doesnt required a shooter.</description>
+		/// </item>
+		/// </list>
 		/// </summary>
 		public Player? Player { get; set; } 
         public DateTimeOffset ShotTime { get; set; }
 
-        public bool IsHit { get; set; }
+		/// <summary>
+		/// Indicates whether the cup was removed from the game after this shot. Allows for flexible games and redemption rules.
+		/// By default, this is true, meaning the cup is removed after a hit.
+		/// </summary>
+		public bool CupRemoved { get; set; }
 
         public HitType? HitType { get; set; } // null if not hit
         public MissType? MissType { get; set; } // null if hit
@@ -27,7 +46,7 @@ namespace MudBeerPong.Data.Models
 
         public override string ToString()
         {
-            return $"{Player} - {ShotTime} - {(IsHit ? $"Hit ({CupPosition?.ToString() ?? "No position"})" : "Miss")}";
+            return $"{Player} - {ShotTime} - {(HitType != null ? $"Hit ({CupPosition?.ToString() ?? "No position"})" : "Miss")}";
         }
 
     }
@@ -59,9 +78,26 @@ namespace MudBeerPong.Data.Models
 
 	public enum HitType
 	{
+		/// <summary>
+		/// Shot that goes directly into the cup without bouncing off anything.
+		/// </summary>
 		Straight,
+		/// <summary>
+		/// Shot that bounces off the table and then goes into the cup.
+		/// </summary>
 		Bounce,
+		/// <summary>
+		/// Shot that is assisted by the target team, e.g., a player from the target team accidentally knocks the ball into their own cup.
+		/// </summary>
 		Self,
+		/// <summary>
+		/// The cup that is taken in addition to the cup that was hit when the shooter calls island.
+		/// </summary>
+		Island,
+		/// <summary>
+		/// The cup is taken as a penalty for a rule violation.
+		/// </summary>
+		Penalty,
 		Other
 	}
 
@@ -71,6 +107,9 @@ namespace MudBeerPong.Data.Models
 		Airball,
 		Rim,
 		Table,
+		/// <summary>
+		/// Shot that is blocked by the target team, e.g., deflecting on bounce or blowing the ball out of a cup.
+		/// </summary>
 		Blocked,
 		Other
 	}

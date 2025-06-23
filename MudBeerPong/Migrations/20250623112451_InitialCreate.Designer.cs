@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MudBeerPong.Data;
 
@@ -11,9 +12,11 @@ using MudBeerPong.Data;
 namespace MudBeerPong.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250623112451_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,11 +27,11 @@ namespace MudBeerPong.Migrations
 
             modelBuilder.Entity("GamePlayer", b =>
                 {
-                    b.Property<Guid>("GamesId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("GamesId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
 
                     b.HasKey("GamesId", "PlayerId");
 
@@ -39,11 +42,11 @@ namespace MudBeerPong.Migrations
 
             modelBuilder.Entity("GameTeam", b =>
                 {
-                    b.Property<Guid>("GamesId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("GamesId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("TeamsId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("TeamsId")
+                        .HasColumnType("int");
 
                     b.HasKey("GamesId", "TeamsId");
 
@@ -250,11 +253,36 @@ namespace MudBeerPong.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("MudBeerPong.Data.Models.Board", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("InitialPositions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Boards");
+                });
+
             modelBuilder.Entity("MudBeerPong.Data.Models.Game", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -273,11 +301,41 @@ namespace MudBeerPong.Migrations
                     b.ToTable("Games");
                 });
 
+            modelBuilder.Entity("MudBeerPong.Data.Models.Joins.StartingBoard", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BoardId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BoardId");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("StartingBoards");
+                });
+
             modelBuilder.Entity("MudBeerPong.Data.Models.Player", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -289,27 +347,35 @@ namespace MudBeerPong.Migrations
 
             modelBuilder.Entity("MudBeerPong.Data.Models.Shot", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("GameId")
-                        .HasColumnType("uniqueidentifier");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CupRemoved")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("HitType")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsHit")
-                        .HasColumnType("bit");
-
                     b.Property<int?>("MissType")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("PlayerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ShootingTeamId")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("ShotTime")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("TargetTeamId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -317,14 +383,20 @@ namespace MudBeerPong.Migrations
 
                     b.HasIndex("PlayerId");
 
+                    b.HasIndex("ShootingTeamId");
+
+                    b.HasIndex("TargetTeamId");
+
                     b.ToTable("Shots");
                 });
 
             modelBuilder.Entity("MudBeerPong.Data.Models.Team", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -336,11 +408,11 @@ namespace MudBeerPong.Migrations
 
             modelBuilder.Entity("PlayerTeam", b =>
                 {
-                    b.Property<Guid>("PlayersId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("PlayersId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("TeamsId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("TeamsId")
+                        .HasColumnType("int");
 
                     b.HasKey("PlayersId", "TeamsId");
 
@@ -430,6 +502,33 @@ namespace MudBeerPong.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MudBeerPong.Data.Models.Joins.StartingBoard", b =>
+                {
+                    b.HasOne("MudBeerPong.Data.Models.Board", "Board")
+                        .WithMany()
+                        .HasForeignKey("BoardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MudBeerPong.Data.Models.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MudBeerPong.Data.Models.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Board");
+
+                    b.Navigation("Game");
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("MudBeerPong.Data.Models.Shot", b =>
                 {
                     b.HasOne("MudBeerPong.Data.Models.Game", "Game")
@@ -443,10 +542,18 @@ namespace MudBeerPong.Migrations
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("MudBeerPong.Data.Models.Team", "ShootingTeam")
+                        .WithMany()
+                        .HasForeignKey("ShootingTeamId");
+
+                    b.HasOne("MudBeerPong.Data.Models.Team", "TargetTeam")
+                        .WithMany()
+                        .HasForeignKey("TargetTeamId");
+
                     b.OwnsOne("MudBeerPong.Data.Models.CupPosition", "CupPosition", b1 =>
                         {
-                            b1.Property<Guid>("ShotId")
-                                .HasColumnType("uniqueidentifier");
+                            b1.Property<int>("ShotId")
+                                .HasColumnType("int");
 
                             b1.Property<int>("Column")
                                 .HasColumnType("int")
@@ -470,6 +577,10 @@ namespace MudBeerPong.Migrations
                     b.Navigation("Game");
 
                     b.Navigation("Player");
+
+                    b.Navigation("ShootingTeam");
+
+                    b.Navigation("TargetTeam");
                 });
 
             modelBuilder.Entity("PlayerTeam", b =>

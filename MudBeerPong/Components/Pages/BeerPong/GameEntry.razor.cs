@@ -25,18 +25,18 @@ namespace MudBeerPong.Components.Pages.BeerPong
 				// Seed player data for testing
 				existingPlayers = new List<Player>
 				{
-					new Player { Id = Guid.NewGuid(), Name = "Alice" },
-					new Player { Id = Guid.NewGuid(), Name = "Bob" },
-					new Player { Id = Guid.NewGuid(), Name = "Charlie" },
-					new Player { Id = Guid.NewGuid(), Name = "Diana" },
-					new Player { Id = Guid.NewGuid(), Name = "Eve" },
+					new Player { Id = 1, Name = "Alice" },
+					new Player { Id = 2, Name = "Bob" },
+					new Player { Id = 3, Name = "Charlie" },
+					new Player { Id = 4, Name = "Diana" },
+					new Player { Id = 5, Name = "Eve" },
 				};
 
 				// Seed team data for testing
 				existingTeams = new List<Team>
 				{
-					new Team { Id = Guid.NewGuid(), Name = "Team A", Players = [existingPlayers[0], existingPlayers[1]] },
-					new Team { Id = Guid.NewGuid(), Name = "Team B", Players = [existingPlayers[2], existingPlayers[3]] }
+					new Team { Id = 1, Name = "Team A", Players = [existingPlayers[0], existingPlayers[1]] },
+					new Team { Id = 2, Name = "Team B", Players = [existingPlayers[2], existingPlayers[3]] }
 				};
 			}
 
@@ -86,7 +86,7 @@ namespace MudBeerPong.Components.Pages.BeerPong
 			// Create a new player and add it to the existing players list
 			var newPlayer = new Player
 			{
-				Id = Guid.Empty,
+				Id = 0,
 				Name = name
 			};
 			existingPlayers.Add(newPlayer);

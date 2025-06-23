@@ -1,16 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace MudBeerPong.Data.Models
 {
     public partial class Shot
     {
-        public Guid Id { get; set; }
+
+		[Key]
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+		public int Id { get; set; }
 
         public Game Game { get; set; }
 
-        public Team ShootingTeam { get; set; } // The team that made the shot.
+        public Team? ShootingTeam { get; set; } // The team that made the shot.
 
-		public Team TargetTeam { get; set; } // The team that was shot at. 
+		public Team? TargetTeam { get; set; } // The team that was shot at. 
 
 
 		/// <summary>
@@ -42,7 +47,7 @@ namespace MudBeerPong.Data.Models
         /// <summary>
         /// Cup position for the sunk shot
         /// </summary>
-        public CupPosition? CupPosition { get; set; } // null if not hit
+        internal CupPosition? CupPosition { get; set; } // null if not hit
 
         public override string ToString()
         {
@@ -52,7 +57,7 @@ namespace MudBeerPong.Data.Models
     }
 
     [Owned]
-    public partial record CupPosition
+    internal partial record CupPosition
     {
         /// <summary>
         /// Lettered row of the cup

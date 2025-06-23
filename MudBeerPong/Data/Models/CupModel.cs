@@ -34,10 +34,20 @@ namespace MudBeerPong.Data.Models
 		/// <summary>
 		/// Validates a beer pong cup configuration.
 		/// Rules:
-		/// - Rows must have decreasing (or equal) number of cups as you go down.
-		/// - Cups in a row must be contiguous (no gaps).
-		/// - Each cup (except in the first row) must touch at least one cup in the row above.
-		/// - No duplicate positions.
+		/// <list type="bullet">
+		/// <item>
+		/// <description>Rows must have decreasing (or equal) number of cups as you go down.</description>
+		/// </item>
+		/// <item>
+		/// <description>Cups in a row must be contiguous (no gaps).</description>
+		/// </item>
+		/// <item>
+		/// <description>Each cup (except in the first row) must touch at least one cup in the row above.</description>
+		/// </item>
+		/// <item>
+		/// <description>No duplicate positions.</description>
+		/// </item>
+		/// </list>
 		/// </summary>
 		public static bool IsValidConfiguration(List<CupModel> cups)
 		{

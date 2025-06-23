@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MudBeerPong.Data.Models;
+using MudBeerPong.Data.Models.Joins;
 
 namespace MudBeerPong.Data;
 
@@ -10,6 +11,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 	public DbSet<Team> Teams { get; set; } = null!;
 	public DbSet<Player> Players { get; set; } = null!;
 	public DbSet<Shot> Shots { get; set; } = null!;
+	public DbSet<Board> Boards { get; set; } = null!;
+	public DbSet<StartingBoard> StartingBoards { get; set; } = null!;
 
 
 	protected override void OnModelCreating(ModelBuilder builder)
@@ -56,6 +59,27 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 				cp.Property(c => c.Row).IsRequired().HasColumnName("PositionRow");
 				cp.Property(c => c.Column).IsRequired().HasColumnName("PositionColumn");
 			});
+
+		builder.Entity<Board>()
+			.Property(b => b.InitialPositions)
+			.HasConversion<ListConverter>();
+
+		
+		builder.Entity<StartingBoard>()
+			.HasOne(sb => sb.Game)
+			.WithMany()
+			.OnDelete(DeleteBehavior.Cascade);
+		builder.Entity<StartingBoard>()
+			.HasOne(sb => sb.Team)
+			.WithMany()
+			.OnDelete(DeleteBehavior.Cascade);
+		builder.Entity<StartingBoard>()
+			.HasOne(sb => sb.Board)
+			.WithMany()
+			.OnDelete(DeleteBehavior.Cascade);
+
+
+		Console.WriteLine(builder.Model.ToDebugString());
 
 	}
 

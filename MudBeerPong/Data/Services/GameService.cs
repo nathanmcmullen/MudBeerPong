@@ -12,7 +12,7 @@ namespace MudBeerPong.Data.Services
 			_dbContextFactory = dbContextFactory;
 		}
 
-		public async Task<Game?> GetGameAsync(Guid gameId)
+		public async Task<Game?> GetGameAsync(int gameId)
 		{
 			using var context = await _dbContextFactory.CreateDbContextAsync();
 			return await context.Games

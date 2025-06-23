@@ -1,8 +1,14 @@
-﻿namespace MudBeerPong.Data.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace MudBeerPong.Data.Models
 {
     public partial class Player
     {
-        public Guid Id { get; set; }
+
+		[Key]
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+		public int Id { get; set; }
 
         public string? Name { get; set; }
 

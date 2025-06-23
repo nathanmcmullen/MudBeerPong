@@ -19,8 +19,6 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Register</MudText>
 
-<MudGrid>
-    <MudItem md="6">
         <StatusMessage Message="@Message" />
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
@@ -48,12 +46,6 @@
                 </MudItem>
             </MudGrid>
         </EditForm>
-    </MudItem>
-    <MudItem md="6">
-        <MudText Typo="Typo.body1" GutterBottom="true">Use another service to register.</MudText>
-        <ExternalLoginPicker />
-    </MudItem>
-</MudGrid>
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;

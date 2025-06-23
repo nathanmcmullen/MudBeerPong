@@ -12,11 +12,6 @@
 
 <PageTitle>Log in</PageTitle>
 
-
-<MudGrid>
-    <MudItem md="4"></MudItem>
-    <MudItem md="4">
-
         <MudText Typo="Typo.h3" GutterBottom="true">Log in</MudText>
         <StatusMessage Message="@errorMessage" />
         <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
@@ -51,15 +46,6 @@
                 <MudLink Href="Account/ResendEmailConfirmation">Resend email confirmation</MudLink>
             </MudItem>
         </MudGrid>
-    </MudItem>
-
-    <MudItem md="4"></MudItem>
-@*     <MudItem md="6">
-        <MudText GutterBottom="true" Typo="Typo.body1">Use another service to log in.</MudText>
-
-        <ExternalLoginPicker />
-    </MudItem> *@
-</MudGrid>
 
 @code {
     private string? errorMessage;

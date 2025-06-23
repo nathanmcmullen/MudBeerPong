@@ -3,7 +3,13 @@
 <MudThemeProvider Theme="mudTheme" />
 <MudLayout>
     <MudMainContent Class="pt-16 pa-4">
-        @Body
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" md="8" lg="4" class="mx-auto">
+
+                    @Body
+                
+            </MudItem>
+        </MudGrid>
     </MudMainContent>
 </MudLayout>
 

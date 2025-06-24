@@ -6,6 +6,7 @@ using MudBeerPong.Components;
 using MudBeerPong.Components.Account;
 using MudBeerPong.Data;
 using MudExtensions.Services;
+using Sqids;
 
 namespace MudBeerPong;
 
@@ -28,6 +29,11 @@ public class Program
         builder.Services.AddScoped<IdentityRedirectManager>();
         builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
+        builder.Services.AddSingleton(new SqidsEncoder<int>(new()
+        {
+            Alphabet = "8HJVR3YImoFExTdBvlSb06O9raieCnf7z1KpNAtkXj5QUMyP2cswDuZqhgLWG4",
+            MinLength = 6
+        }));
 
         builder.Services.AddAuthentication(options =>
             {

@@ -15,7 +15,7 @@ namespace MudBeerPong.Data.Models
 		public IEnumerable<Player>? Players { get; set; } = new List<Player>();
 
 		[NotMapped]
-		public Board? Board { get; set; } = new Board();
+		public Board? Board { get; set; }
 
 		[NotMapped]
 		public List<CupModel>? Cups { get; set; } = new List<CupModel>();

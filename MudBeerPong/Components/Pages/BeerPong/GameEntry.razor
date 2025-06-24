@@ -1,27 +1,32 @@
 ﻿@page "/game/new"
-@using MudBeerPong.Data.Models
+@using Sqids
 
+@inject SqidsEncoder<int> Hasher
 @inject ISnackbar Snackbar
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject NavigationManager NavigationManager
 
 @rendermode InteractiveServer
 
 <PageTitle>New Game</PageTitle>
-<BeerPongBoardLayout Cups="@StandardBoardLayouts.ThreeBase" EditMode="true" />
 <MudGrid Justify="Justify.Center">
     <MudItem xs="12" md="6" lg="4">
 
         <MudText Typo="Typo.h3" GutterBottom="true">New Game</MudText>
-        <MudStepper Vertical ShowResetButton NonLinear OnPreviewInteraction="OnPreviewInteraction">
-            <MudStep Title="Teams">
+        <MudStepper @bind-ActiveIndex="activeStepIndex" Vertical ShowResetButton NonLinear OnPreviewInteraction="OnPreviewInteraction">
+          <ChildContent>
+
+            <MudStep Title="Teams" @bind-Completed="teamsComplete">
+
                 <MudComboBox @bind-SelectedValues="newTeam.Players"
-                             @bind-SelectedValues:after="OnPlayersChanged"
-                             Label="Players"
-                             Placeholder="Start typing to search or add players..."
-                             OnOpen="@(() => playerSearchString = string.Empty)"
-                             MultiSelection Editable Clearable ChipCloseable
-                             InputPresenter="ValuePresenter.Chip"
-                             ToStringFunc="@(p => p?.Name ?? string.Empty)"
-                             SearchFunc="SearchPlayer">
+                @bind-SelectedValues:after="OnPlayersChanged"
+                Label="Players"
+                Placeholder="Start typing to search or add players..."
+                OnOpen="@(() => playerSearchString = string.Empty)"
+                MultiSelection Editable Clearable ChipCloseable
+                InputPresenter="ValuePresenter.Chip"
+                ToStringFunc="@(p => p?.Name ?? string.Empty)"
+                SearchFunc="SearchPlayer">
                     <ChildContent>
                         @if (playerSearchString.Length > 1 && PlayerNameUnique(playerSearchString))
                         {
@@ -31,17 +36,21 @@
                         {
                             <MudComboBoxItem Disabled="@(PlayerAlreadyAssigned(player))" Value="@player">@player.Name</MudComboBoxItem>
                         }
+                        @if (existingPlayers.Count == 0)
+                        {
+                                <MudComboBoxItem T="Player" Disabled="true" Text="No players found"></MudComboBoxItem>
+                        }
                     </ChildContent>
                 </MudComboBox>
                 <MudAutocomplete @bind-Value="newTeam.Name"
-                                 @bind-Value:after="SetPlayersForExistingTeam"
-                                 Label="Team Name"
-                                 ItemDisabledFunc="TeamAlreadyAssigned"
-                                 Placeholder="Start typing to search or add a team name..."
-                                 Clearable Class="my-4" Disabled="teamNameDisabled"
-                                 CoerceText="false" CoerceValue ResetValueOnEmptyText 
-                                 ToStringFunc="@(t => t ?? string.Empty)"
-                                 SearchFunc="SearchTeams" />
+                @bind-Value:after="SetPlayersForExistingTeam"
+                Label="Team Name"
+                ItemDisabledFunc="TeamAlreadyAssigned"
+                Placeholder="Start typing to search or add a team name..."
+                Clearable Class="my-4" Disabled="teamNameDisabled"
+                CoerceValue ResetValueOnEmptyText 
+                ToStringFunc="@(t => t ?? string.Empty)"
+                SearchFunc="SearchTeams" />
 
                 <MudToolBar Gutters="false">
                     <MudSpacer />
@@ -57,21 +66,76 @@
                             <ChildContent>
                                 <MudStack Row>
 
-                                <MudText Class="align-self-center" Typo="Typo.h6" Align="Align.Center">@team.Name</MudText>
-                                <MudTooltip Class="align-contents-center" Text="@(string.Join(", ", team.Players?.Select(p => p.Name) ?? []))">
-                                    <MudChip Color="Color.Info" Size="Size.Small" Class="ml-2">@team.Players?.Count()</MudChip>
-                                </MudTooltip>
-                                <MudSpacer />
-                                    <MudIconButton Style="padding:4px;" Icon="@Icons.Material.Filled.RemoveCircle" Color="Color.Error" OnClick="@(() => DeselectTeam(team))" />
+                                    <MudText Class="align-self-center" Typo="Typo.h6" Align="Align.Center">@team.Name</MudText>
+                                    <MudTooltip Class="align-contents-center" Text="@(string.Join(", ", team.Players?.Select(p => p.Name) ?? []))">
+                                        <MudChip Color="Color.Info" Size="Size.Small" Class="ml-2">@team.Players?.Count()</MudChip>
+                                    </MudTooltip>
+                                    <MudSpacer />
+                                    <MudTooltip Text="Remove Team">
+                                        <MudIconButton Style="padding:4px;" Icon="@Icons.Material.Filled.RemoveCircle" Color="Color.Error" OnClick="@(() => DeselectTeam(team))" />
+                                    </MudTooltip>
                                 </MudStack>
-                        </ChildContent>
+                            </ChildContent>
                         </MudListItem>
                     }
-                    </MudList>
+                </MudList>
             </MudStep>
-            <MudStep Title="Boards">
-                
+            <MudStep Title="Boards" @bind-Completed="boardsComplete">
+                <MudTabs Centered>
+                    @foreach (var team in _game.Teams ?? [])
+                    {
+                        <MudTabPanel Text="@team.Name">
+                            <MudToolBar Gutters="false" WrapContent Class="my-2">
+                                <MudMenu Label="Standard Boards" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Variant="Variant.Filled">
+                                    <MudMenuItem OnClick="() => team.Board = StandardBoardLayouts.ThreeBaseBoard">Three Base</MudMenuItem>
+                                    <MudMenuItem OnClick="() => team.Board = StandardBoardLayouts.FourBaseBoard">Four Base</MudMenuItem>
+                                </MudMenu>
+                                <MudSpacer />
+                                <MudButton class="mx-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => ApplyBoardToAll(team.Board))">Apply All</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => team.Board?.AddCup())">Add Cup</MudButton>
+                            </MudToolBar>
+                            <BeerPongBoardLayout @bind-Cups="@team.Board.InitialPositions" EditMode />
+                        </MudTabPanel>
+                        
+                    }
+                </MudTabs>
             </MudStep>
+            <MudStep Title="Settings" @bind-Completed="SettingsComplete">
+                <MudTextField @bind-Value="_game.Name" Variant="Variant.Outlined" Label="Game Name" Required="true" />
+                <MudTextField @bind-Value="_game.Description" Variant="Variant.Outlined" Label="Description" Lines="3" />
+            </MudStep>
+            <MudStep Title="Review">
+                <MudText Typo="Typo.h6" GutterBottom="true">Review Game Setup</MudText>
+
+                <MudField @bind-Value="_game.Name" Variant="Variant.Outlined" Label="Game Name" />
+                <MudField @bind-Value="_game.Description" Variant="Variant.Outlined" Label="Description" />
+                <MudList T="string">
+                    @foreach (var team in _game.Teams ?? [])
+                    {
+                        <MudListItem>
+                            <ChildContent>
+                                <MudStack Row>
+                                    <MudText Class="align-self-center" Typo="Typo.h6" Align="Align.Center">@team.Name</MudText>
+                                    <MudTooltip Class="align-contents-center" Text="@(string.Join(", ", team.Players?.Select(p => p.Name) ?? []))">
+                                        <MudChip Color="Color.Info" Size="Size.Small" Class="ml-2">@team.Players?.Count()</MudChip>
+                                    </MudTooltip>
+                                    <MudSpacer />
+                                    <MudText Class="align-self-center mr-2" Typo="Typo.body2" Align="Align.Center">@((team.Board?.InitialPositions == null ? "0" : team.Board.InitialPositions.Count)) Cups</MudText>
+
+                                </MudStack>
+                            </ChildContent>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudStep>
+
+            </ChildContent>
+            <CompletedContent>
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="2" Class="my-4">
+                    <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small" />
+                    <MudText Typo="Typo.subtitle1">Creating Game...</MudText>
+                </MudStack>
+            </CompletedContent>
         </MudStepper>
 
     </MudItem>

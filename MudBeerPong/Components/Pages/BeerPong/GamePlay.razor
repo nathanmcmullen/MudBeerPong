@@ -1,0 +1,48 @@
+﻿@page "/game/play/{GameId}"
+@using Sqids
+
+@inject SqidsEncoder<int> Hasher
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+
+@rendermode InteractiveServer
+
+<PageTitle>Play Game</PageTitle>
+@if (_game == null)
+{
+    <MudOverlay DarkBackground Absolute>
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+    </MudOverlay>
+}
+else
+{
+
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="12" md="6" lg="4">
+            <MudField @bind-Value="_game.Name" Variant="Variant.Outlined" Label="Game Name" />
+            <MudField @bind-Value="_game.Description" Variant="Variant.Outlined" Label="Description" />
+            <MudList T="string">
+                @foreach (var team in _game.Teams ?? [])
+                {
+                    <MudListItem>
+                        <ChildContent>
+                            <MudStack Row>
+                                <MudText Class="align-self-center" Typo="Typo.h6" Align="Align.Center">@team.Name</MudText>
+                                <MudTooltip Class="align-contents-center" Text="@(string.Join(", ", team.Players?.Select(p => p.Name) ?? []))">
+                                    <MudChip Color="Color.Info" Size="Size.Small" Class="ml-2">@team.Players?.Count()</MudChip>
+                                </MudTooltip>
+                                <MudSpacer />
+                                <MudText Class="align-self-center mr-2" Typo="Typo.body2" Align="Align.Center">@((team.Board?.InitialPositions == null ? "0" : team.Board.InitialPositions.Count)) Cups</MudText>
+
+                            </MudStack>
+                        </ChildContent>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudItem>
+    </MudGrid>
+
+}
+

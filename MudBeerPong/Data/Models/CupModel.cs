@@ -136,6 +136,23 @@ namespace MudBeerPong.Data.Models
 
 		];
 
+		public static Board ThreeBaseBoard =>
+			new Board
+			{
+				Name = "Three Base",
+				InitialPositions = ThreeBase,
+				IsDefault = true
+
+			};
+
+		public static Board FourBaseBoard =>
+			new Board
+			{
+				Name = "Four Base",
+				InitialPositions = FourBase,
+				IsDefault = true
+			};
+
 
 	}
 }

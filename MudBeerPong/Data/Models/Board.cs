@@ -93,5 +93,20 @@ namespace MudBeerPong.Data.Models
 			// No free spot found; do nothing or throw if desired
 		}
 
+		public List<CupModel> ApplyShots(List<Shot> shots)
+		{
+			if (shots == null || shots.Count == 0)
+				return InitialPositions;
+			var updatedCups = new List<CupModel>(InitialPositions);
+			foreach (var shot in shots)
+			{
+				if (shot.CupRemoved)
+				{
+					updatedCups.RemoveAll(c => c.ToString() == shot.CupPosition?.ToString());
+
+				}
+			}
+			return updatedCups;
+		}
 	}
 }

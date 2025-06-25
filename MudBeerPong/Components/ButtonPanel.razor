@@ -1,0 +1,120 @@
+﻿
+
+<div class="@classstr" disabled="@Disabled" @onclick="OnClickEvent">
+    @if (Loading)
+    {
+        @if (LoadingContent != null)
+        {
+            @LoadingContent
+        }
+        else
+        {
+            <MudProgressCircular Size="Size.Small" Color="Color.Primary" />
+        }
+    }
+    else
+    {
+        @if (ChildContent != null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <div class="button-panel-text text-center mud-typography mud-typography-h6">@Label</div>
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? LoadingContent { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; } = "Not Set";
+
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
+    [Parameter]
+    public bool Loading { get; set; } = false;
+
+    [Parameter]
+    public bool Toggle { get; set; } = false;
+
+    private bool _selected { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> StateChanged { get; set; }
+
+    [Parameter]
+    public bool Selected { get; set; }
+
+    private string classstr = "button-panel mud-ripple";
+
+    private void OnClickEvent()
+    {
+        if (!Disabled)
+        {
+            _selected = !_selected;
+            StateChanged.InvokeAsync(_selected);
+        }
+
+        ConstructClassString();
+    }
+
+    internal void SetSelected(bool selected)
+    {
+        _selected = selected;
+        ConstructClassString();
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        _selected = Selected;
+        ConstructClassString();
+
+        return base.OnInitializedAsync();
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (Label == null)
+        {
+            if (ChildContent == null)
+                throw new ArgumentNullException(nameof(Label));
+        }
+
+        ConstructClassString();
+
+
+        return base.OnParametersSetAsync();
+
+    }
+
+    private void ConstructClassString()
+    {
+        classstr = "button-panel h-100";
+
+        if (Disabled)
+        {
+            classstr += " disabled";
+        }
+
+        if (_selected && Toggle)
+        {
+            classstr += " selected";
+        }
+
+        if (!Toggle)
+        {
+            classstr += " border-dotted";
+        }
+
+        StateHasChanged();
+    }
+}
+

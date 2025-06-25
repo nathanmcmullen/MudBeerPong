@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MudBeerPong.Data.Models
@@ -46,6 +47,7 @@ namespace MudBeerPong.Data.Models
 
 			// Check if there is a custom board configuration for this team in the game
 			var startingBoard = context.StartingBoards
+				.Include(sb => sb.Board)
 				.FirstOrDefault(sb => sb.Game.Id == gameId && sb.Team.Id == teamId);
 
 

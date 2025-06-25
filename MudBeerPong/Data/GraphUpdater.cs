@@ -1,4 +1,5 @@
-﻿using MudBeerPong.Data.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using MudBeerPong.Data.Models;
 
 namespace MudBeerPong.Data
 {
@@ -18,11 +19,61 @@ namespace MudBeerPong.Data
 			await context.SaveChangesAsync();
 		}
 
-		public static async Task SaveGame(this ApplicationDbContext context, Game game)
+		public static async Task SaveGame(this ApplicationDbContext context, Game entity)
 		{
-			// This method is specifically for saving a Game entity, which may have additional logic or relationships.
-			context.Update(game);
-			await context.SaveChangesAsync();
+			// Retrieving the existing game to update its properties
+			var existingGame = await context.Games
+				.Include(g => g.Teams!)
+					.ThenInclude(t => t.Players)
+				.FirstOrDefaultAsync(g => g.Id == entity.Id);
+
+			if (existingGame == null)
+			{
+				// If the game does not exist, add it as a new entity
+				context.Entry(entity).State = EntityState.Added;
+
+				// Add the teams
+				foreach (var team in entity.Teams ?? [])
+				{
+					var existingTeam = await context.Teams
+						.Include(t => t.Players)
+						.FirstOrDefaultAsync(t => t.Id == team.Id);
+
+					if (existingTeam == null)
+					{
+						context.Entry(team).State = EntityState.Added;
+
+						var playerCollection = new List<Player>();
+						foreach (var player in team.Players ?? [])
+						{
+							var existingPlayer = await context.Players
+								.FirstOrDefaultAsync(p => p.Id == player.Id);
+
+							if (existingPlayer == null)
+							{
+								context.Entry(player).State = EntityState.Added;
+								playerCollection.Add(player);
+							}
+							else
+							{
+								playerCollection.Add(existingPlayer);
+							}
+						}
+						team.Players = playerCollection;
+					}
+					else
+					{
+						context.Entry(existingTeam);
+					}
+				}
+
+			}
+			else
+			{
+				context.Entry(existingGame).CurrentValues.SetValues(entity);
+
+			}
+
 		}
 
 

@@ -6,12 +6,11 @@
 @inject IDbContextFactory<ApplicationDbContext> DbContextFactory
 @inject NavigationManager NavigationManager
 
+@layout Layout.MobileLayout
+
 @rendermode InteractiveServer
 
 <PageTitle>New Game</PageTitle>
-<MudGrid Justify="Justify.Center">
-    <MudItem xs="12" md="6" lg="4">
-
         <MudText Typo="Typo.h3" GutterBottom="true">New Game</MudText>
         <MudStepper @bind-ActiveIndex="activeStepIndex" Vertical ShowResetButton NonLinear OnPreviewInteraction="OnPreviewInteraction">
           <ChildContent>
@@ -137,9 +136,6 @@
                 </MudStack>
             </CompletedContent>
         </MudStepper>
-
-    </MudItem>
-</MudGrid>
 
 
 

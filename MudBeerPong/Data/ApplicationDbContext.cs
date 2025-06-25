@@ -54,11 +54,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 			.WithMany(p => p.Shots)
 			.OnDelete(DeleteBehavior.SetNull);
 		builder.Entity<Shot>()
-			.OwnsOne(s => s.CupPosition, cp =>
-			{
-				cp.Property(c => c.Row).IsRequired().HasColumnName("PositionRow");
-				cp.Property(c => c.Column).IsRequired().HasColumnName("PositionColumn");
-			});
+			.Property(s => s.CupPosition)
+			.HasConversion<CupModelConverter>();
 
 		builder.Entity<Board>()
 			.Property(b => b.InitialPositions)

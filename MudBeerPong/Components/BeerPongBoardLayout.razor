@@ -2,7 +2,7 @@
 @using MudBeerPong.Data.Models
 
 <div style="position:relative; width:@(GridWidthPx)px; height:@(GridHeightPx)px; background:#f5f5f5; border-radius:12px; margin:12px auto;"
-     @onpointerup="OnPointerUp">
+@onpointerup="OnPointerUp">
 
     @if (draggingCup is not null)
     {
@@ -10,12 +10,12 @@
         {
             var (x, y) = GetCellPosition(spot.row, spot.col);
             <MudPaper Class="cup-spot-available"
-                      Style="@($"position: absolute; left: {x}px; top: {y}px; width: {CupSizePx}px; height: {CupSizePx}px; z-index: 2;")">
+            Style="@($"position: absolute; left: {x}px; top: {y}px; width: {CupSizePx}px; height: {CupSizePx}px; z-index: 2;")">
             </MudPaper>
         }
         <div class="trash-bar"
-             @onpointerup="RemoveDraggingCup"
-             style="position:absolute; left:0; bottom:0; width:100%; height:48px; display:flex; align-items:center; justify-content:center; z-index:10;">
+        @onpointerup="RemoveDraggingCup"
+        style="position:absolute; left:0; bottom:0; width:100%; height:48px; display:flex; align-items:center; justify-content:center; z-index:10;">
             <button class="trash-btn" @onclick="RemoveDraggingCup" tabindex="-1" type="button">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                     <rect x="5" y="7" width="14" height="12" rx="2" fill="#fff" stroke="#fff" stroke-width="1" />
@@ -33,23 +33,32 @@
         var (x, y) = GetCellPosition(cup.Row, cup.Column);
         var styleStr = $"left:{x}px; top:{y}px; width:{CupSizePx}px; height:{CupSizePx}px";
         <div class="@(hoveredCup == cup && !EditMode ? "cup cup-hover-highlight" : "cup")"
-             style="position:absolute; touch-action:none; user-select:none; @styleStr"
-             @onpointerdown="e => OnPointerDown(e, cup)"
-             @onclick="() => OnCupClick(cup)"
-             @onmouseover="() => OnCupMouseOver(cup)"
-             @onmouseout="OnCupMouseOut">
+        style="position:absolute; touch-action:none; user-select:none; @styleStr"
+        @onpointerdown="e => OnPointerDown(e, cup)"
+        @onclick="async () => await OnCupClick(cup)"
+        @onmouseover="() => OnCupMouseOver(cup)"
+        @onmouseout="OnCupMouseOut">
             <svg width="@CupSizePx" height="@CupSizePx">
                 <circle cx="@(CupSizePx/2)" cy="@(CupSizePx/2)" r="@(CupSizePx/2-2)" fill="#e74c3c" stroke="#b03a2e" stroke-width="2" />
             </svg>
         </div>
         <MudPaper
-            Class="beer-pong-cup"
-                  Style="@($"position: absolute; left: {x}px; top: {y}px; width: {CupSizePx}px; height: {CupSizePx}px; border-radius: 50%; background: #e53935; cursor: grab; z-index: 2;")"
-                  @onpointerdown="e => OnPointerDown(e, cup)"
-                  @onclick="() => OnCupClick(cup)"
-                  @onmouseover="() => OnCupMouseOver(cup)"
-                  @onmouseout="OnCupMouseOut">
-            <span style="color: white; font-weight: bold; line-height: 42px; font-size: 1.2em; text-align: center; display: block; user-select:none;">
+        Class="beer-pong-cup"
+        Style="@($"position: absolute; left: {x}px; top: {y}px; width: {CupSizePx}px; height: {CupSizePx}px; border-radius: 50%; background: #e53935; cursor: {CursorStyle}; z-index: 2;")"
+        @onpointerdown="e => OnPointerDown(e, cup)"
+        @onclick="() => OnCupClick(cup)"
+        @onmouseover="() => OnCupMouseOver(cup)"
+        @onmouseout="OnCupMouseOut">
+            <span style="
+                color: white; 
+                font-weight: bold; 
+                width: 100%; 
+                height: 100%; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                user-select: none; 
+                font-size: @(CupSizePx * 0.32)px;">
                 @cup
             </span>
         </MudPaper>
@@ -63,20 +72,60 @@
     [Parameter] public EventCallback<CupModel> OnCupSelected { get; set; }
     [Parameter] public int? Width { get; set; } // in px
     [Parameter] public int? Height { get; set; } // in px
+    [Parameter] public bool Reverse { get; set; } // Render cups upside down (so they can face the other team)
 
     private CupModel? draggingCup;
     private CupModel? hoveredCup;
     private Vector2 dragOffset;
 
     // Grid settings
-    private const int GridRows = 8;
-    private const int GridColumns = 8;
-    private static readonly char[] RowLabels = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
-    private const int DefaultGridSize = 384; // px (8*48)
+    private const int DefaultGridRows = 8;
+    private const int DefaultGridColumns = 8;
+    private static readonly char[] DefaultRowLabels = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
+
+    private int GridRows;
+    private int GridColumns;
+    private char[] RowLabels = [];
+
+    private const int DefaultGridSize = 288; // px (8*48)
     private int GridWidthPx => Width ?? DefaultGridSize;
     private int GridHeightPx => Height ?? DefaultGridSize;
     private double CellSize => Math.Min((double)GridWidthPx / GridColumns, (double)GridHeightPx / GridRows);
     private int CupSizePx => (int)(CellSize * 0.9); // Cup slightly smaller than cell
+    private string CursorStyle => EditMode ? "grab" : "pointer";
+
+
+    protected override Task OnParametersSetAsync()
+    {
+        // If in edit mode, use default grid settings
+        if (EditMode)
+        {
+            GridRows = DefaultGridRows;
+            GridColumns = DefaultGridColumns;
+            RowLabels = DefaultRowLabels;
+        }
+        else
+        {
+            // In view mode, use the cups' positions to determine grid size
+            if (Cups.Count > 0)
+            {
+                var maxRow = Cups.Max(c => c.Row);
+                var maxCol = Cups.Max(c => c.Column);
+                GridRows = Array.IndexOf(DefaultRowLabels, maxRow) + 1;
+                GridColumns = maxCol;
+                RowLabels = DefaultRowLabels.Take(GridRows).ToArray();
+            }
+            else
+            {
+                GridRows = DefaultGridRows;
+                GridColumns = DefaultGridColumns;
+                RowLabels = DefaultRowLabels;
+            }
+        }
+
+
+        return base.OnParametersSetAsync();
+    }
 
     private IEnumerable<(char row, int col)> AllGridCells()
     {
@@ -98,15 +147,18 @@
     // Converts a pointer position to a grid cell (row, column)
     private (char row, int col) GetGridCell(double x, double y)
     {
-        int rowIdx = (int)Math.Clamp(Math.Round(y / CellSize), 0, GridRows - 1);
+        int rowIdx;
+        if (Reverse)
+        {
+            rowIdx = (int)Math.Clamp(Math.Round(y / CellSize), 0, GridRows - 1);
+            rowIdx = GridRows - 1 - rowIdx; // Flip row index
+        }
+        else
+        {
+            rowIdx = (int)Math.Clamp(Math.Round(y / CellSize), 0, GridRows - 1);
+        }
         char row = RowLabels[rowIdx];
         int maxCol = (rowIdx % 2 == 1) ? GridColumns - 1 : GridColumns;
-
-        // Offset x by half a cell for odd rows
-        // if (rowIdx % 2 == 0)
-        // {
-        //     x += CellSize / 2;
-        // }
 
         int col = (int)Math.Clamp(Math.Round(x / CellSize), 0, maxCol - 1) + 1;
         return (row, col);
@@ -116,21 +168,44 @@
     private (double x, double y) GetCellPosition(char row, int col)
     {
         int rowIdx = Array.IndexOf(RowLabels, row);
-        // Offset every other row by half a cell
+        if (Reverse)
+        {
+            rowIdx = GridRows - 1 - rowIdx; // Flip row index
+        }
         double x = (col - 1) * CellSize + (CellSize - CupSizePx) / 2;
+
         if (rowIdx % 2 == 1)
         {
             x += CellSize / 2;
         }
+
+        // if (rowIdx % 2 == 1)
+        // {
+        //     if (Reverse)
+        //     {
+        //         x -= CellSize / 2; // Offset for odd rows in reverse mode
+
+        //     }
+        //     else
+        //     {
+        //         x += CellSize / 2; // Offset for odd rows in normal mode
+        //     }
+        // }
+        // if (Reverse)
+        // {
+        //     x += CellSize / 2; // Adjust offset for reverse mode
+        // }
+
+        
         double y = rowIdx * CellSize + (CellSize - CupSizePx) / 2;
         return (x, y);
     }
 
-    private void OnCupClick(CupModel cup)
+    private async Task OnCupClick(CupModel cup)
     {
         if (!EditMode)
         {
-            OnCupSelected.InvokeAsync(cup);
+            await OnCupSelected.InvokeAsync(cup);
         }
     }
 

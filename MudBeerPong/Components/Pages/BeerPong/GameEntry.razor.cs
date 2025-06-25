@@ -120,12 +120,14 @@ namespace MudBeerPong.Components.Pages.BeerPong
 						// Create a new team with linked players
 						var newTeam = new Team
 						{
-							Name = team.Name,
-							Players = linkedPlayers
+							Name = team.Name
 						};
 
 						context.Teams.Add(newTeam);
-						await context.SaveChangesAsync();
+
+								newTeam.Players = linkedPlayers;
+								context.Teams.Entry(newTeam).Collection(x => x.Players!).IsModified = true;
+								await context.SaveChangesAsync();
 
 						teamId = newTeam.Id;
 						linkedTeams.Add(newTeam);
@@ -325,7 +327,7 @@ namespace MudBeerPong.Components.Pages.BeerPong
 				}
 
 				// Check if the team already exists
-				var existingTeam = _game.Teams.FirstOrDefault(t => t.Name?.Equals(newTeam.Name, StringComparison.OrdinalIgnoreCase) ?? false);
+				var existingTeam = existingTeams.FirstOrDefault(t => t.Name?.Equals(newTeam.Name, StringComparison.OrdinalIgnoreCase) ?? false);
 				if (existingTeam == null)
 				{
 					// If the team does not exist, add it

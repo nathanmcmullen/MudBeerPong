@@ -1,0 +1,178 @@
+﻿@page "/game/play/{GameId}/shot"
+
+@using Sqids
+@using Data.Models
+
+@inject SqidsEncoder<int> Hasher
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@layout Layout.MobileLayout
+
+@rendermode InteractiveServer
+
+<style>
+    .mud-grid.mud-grid-spacing-xs-6 {
+        width: 100%;
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+
+    .mud-grid-item.mud-grid-item-xs-12.mud-grid-item-md-6.mud-grid-item-lg-4 {
+        padding-left: 0px;
+    }
+
+</style>
+
+<PageTitle>New Shot</PageTitle>
+
+<MudToolBar Gutters="false">
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Color="Color.Primary" Size="Size.Large" Class="mr-2 pl-0" />
+    <MudText Typo="Typo.h4">New Shot</MudText>
+</MudToolBar>
+<MudStepperExtended @ref="_stepper" ContentStyle="margin-left:-24px;"  MobileView Linear>
+    <MudStepExtended Title="Team" Icon="@Icons.Material.Filled.Groups2">
+        <MudText Typo="Typo.h6" Class="ml-6" GutterBottom="true">Select the team that made the shot</MudText>
+        <MudGrid>
+
+            @foreach (var team in _game?.Teams ?? [])
+            {
+                <MudItem xs="12" sm="6">
+                    <ButtonPanel Label="@team.Name" StateChanged="async () => await TeamClicked(team)" />
+                </MudItem>
+            }
+
+        </MudGrid>
+    </MudStepExtended>
+    <MudStepExtended Title="Player" Icon="@Icons.Material.Filled.Person">
+        <MudText Typo="Typo.h6" Class="ml-6" GutterBottom="true">Select the player that made the shot</MudText>
+        <MudGrid>
+            @if (_shot.ShootingTeam?.Players != null)
+            {
+                foreach (var player in _shot.ShootingTeam?.Players ?? [])
+                {
+                    <MudItem xs="12" sm="6">
+                        <ButtonPanel Label="@player.Name" StateChanged="async () => await PlayerClicked(player)" />
+                    </MudItem>
+                }
+            }
+        </MudGrid>
+    </MudStepExtended>
+    <MudStepExtended Title="Cup" Icon="@Icons.Material.Filled.LocalDrink" Class="ml-6">
+
+        <MudText Typo="Typo.h6" GutterBottom="true">Select the cup that was hit</MudText>
+        @if (_shot.CupPosition == null)
+        {
+            <MudText Typo="Typo.body2" GutterBottom="true">No cup selected</MudText>
+            <MudButton Variant="Variant.Filled" FullWidth OnClick="async () => await ContinueAsMiss()">Continue As Miss</MudButton>
+
+        }
+        else
+        {
+            <MudText Typo="Typo.body2" GutterBottom="true">Selected Cup: @(_shot.CupPosition.ToString())</MudText>
+            <MudButton Variant="Variant.Filled" FullWidth OnClick="async () => await CupClicked(_shot.CupPosition)">Continue with @(_shot.CupPosition.ToString())</MudButton>
+
+            <MudButton Variant="Variant.Filled" Class="my-2" FullWidth OnClick="async () => await ContinueAsMiss()">Continue As Miss</MudButton>
+        }
+        @if (_shot.TargetTeam != null)
+        {
+            <BeerPongBoardLayout @bind-Cups="_shot.TargetTeam.Cups" OnCupSelected="async (cup) => await CupClicked(cup)" Reverse="@(_shot.ShootingTeam?.Id == _game?.Teams?[1].Id)" />
+
+        }
+    </MudStepExtended>
+    <MudStepExtended Title="Type" Icon="@Icons.Material.Filled.SportsHandball">
+        <MudText Typo="Typo.h6" Class="ml-6 mb-6" GutterBottom="true">Select the type of shot</MudText>
+        <MudGrid>
+            @if (_shot.CupPosition != null)
+            {
+                <!--Hit Type-->
+                <MudGrid>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Direct Hit" StateChanged="async () => await HitTypeClicked(HitType.Straight)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Bounce" StateChanged="async () => await HitTypeClicked(HitType.Bounce)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Island" StateChanged="async () => await HitTypeClicked(HitType.Island)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Self" StateChanged="async () => await HitTypeClicked(HitType.Self)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Penalty" StateChanged="async () => await HitTypeClicked(HitType.Penalty)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Other" StateChanged="async () => await HitTypeClicked(HitType.Other)" />
+                    </MudItem>
+                </MudGrid>
+            }
+            else
+            {
+                <MudGrid>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Airball" StateChanged="async () => await MissTypeClicked(MissType.Airball)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Table" StateChanged="async () => await MissTypeClicked(MissType.Table)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Rim" StateChanged="async () => await MissTypeClicked(MissType.Rim)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Blocked" StateChanged="async () => await MissTypeClicked(MissType.Blocked)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Penalty" StateChanged="async () => await MissTypeClicked(MissType.Penalty)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <ButtonPanel Label="Other" StateChanged="async () => await MissTypeClicked(MissType.Other)" />
+                    </MudItem>
+                </MudGrid>
+                
+            }
+        </MudGrid>
+    </MudStepExtended>
+    <MudStepExtended Title="Summary" Icon="@Icons.Material.Filled.Approval" Class="ml-6">
+        <MudText Typo="Typo.h6" GutterBottom="true">Review the shot details</MudText>
+        <MudList T="string">
+            <MudListItem>
+                <ChildContent>
+                    <MudStack Row>
+                        <MudText Class="align-self-center" Typo="Typo.body1">@($"Team: {_shot.ShootingTeam?.Name}")</MudText>
+                        <MudSpacer />
+                        <MudText Class="align-self-center" Typo="Typo.body1">@($"Player: {_shot.Player?.Name}")</MudText>
+                    </MudStack>
+                </ChildContent>
+            </MudListItem>
+            @if (_shot.CupPosition != null)
+            {
+                <MudListItem>
+                    <ChildContent>
+                        <MudStack Row>
+                            <MudText Class="align-self-center" Typo="Typo.body1">@($"Cup: {_shot.CupPosition.ToString()}")</MudText>
+                            <MudSpacer />
+                            <MudText Class="align-self-center" Typo="Typo.body1">@($"Hit Type: {_shot.HitType}")</MudText>
+                        </MudStack>
+                    </ChildContent>
+                </MudListItem>
+            }
+            else
+            {
+                <MudListItem>
+                    <ChildContent>
+                        <MudStack Row>
+                            <MudText Class="align-self-center" Typo="Typo.body1">Missed Shot</MudText>
+                            <MudSpacer />
+                            <MudText Class="align-self-center" Typo="Typo.body1">@($"Miss Type: {_shot.MissType}")</MudText>
+                        </MudStack>
+                    </ChildContent>
+                </MudListItem>
+            }
+        </MudList>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="my-4" FullWidth OnClick="SubmitShot">Submit Shot</MudButton>
+    </MudStepExtended>
+</MudStepperExtended>
+
+

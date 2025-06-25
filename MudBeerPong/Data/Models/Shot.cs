@@ -47,38 +47,13 @@ namespace MudBeerPong.Data.Models
         /// <summary>
         /// Cup position for the sunk shot
         /// </summary>
-        internal CupPosition? CupPosition { get; set; } // null if not hit
+        internal CupModel? CupPosition { get; set; } // null if not hit
 
         public override string ToString()
         {
             return $"{Player} - {ShotTime} - {(HitType != null ? $"Hit ({CupPosition?.ToString() ?? "No position"})" : "Miss")}";
         }
 
-    }
-
-    [Owned]
-    internal partial record CupPosition
-    {
-        /// <summary>
-        /// Lettered row of the cup
-        /// </summary>
-        /// <remarks>
-        /// e.g. <c>A</c>, <c>B</c>, <c>C</c>
-        /// </remarks>
-        public required char Row { get; init; } // Row identifier (e.g., "A", "B", "C")
-
-        /// <summary>
-        /// Column number of the cup
-        /// </summary>
-        /// <remarks>
-        /// e.g. <c>1</c>, <c>2</c>, <c>3</c>
-        /// </remarks>
-        public required int Column { get; init; } // Column number (e.g., 1, 2, 3)
-
-        public override string ToString()
-        {
-            return $"{Row}{Column}";
-        }
     }
 
 	public enum HitType
@@ -116,6 +91,10 @@ namespace MudBeerPong.Data.Models
 		/// Shot that is blocked by the target team, e.g., deflecting on bounce or blowing the ball out of a cup.
 		/// </summary>
 		Blocked,
+		/// <summary>
+		/// A sunk shot that is invalidated by a rule violation, e.g., an elbow over the table.
+		/// </summary>
+		Penalty,
 		Other
 	}
 }

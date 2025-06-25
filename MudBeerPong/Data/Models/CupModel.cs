@@ -1,9 +1,23 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace MudBeerPong.Data.Models
 {
 	public partial class CupModel
 	{
+		public CupModel() { }
+
+		[SetsRequiredMembers]
+		public CupModel(string postion)
+		{
+			// Parse string - first char is Row, rest is Column
+			if (string.IsNullOrEmpty(postion) || postion.Length < 2)
+				throw new ArgumentException("Invalid cup position format. Expected format: 'A1', 'B2', etc.", nameof(postion));
+			Row = postion[0];
+			if (!int.TryParse(postion[1..], out int column))
+				throw new ArgumentException("Invalid cup position format. Column must be a number.", nameof(postion));
+			Column = column;
+		}
 		public int Id { get; set; }
 		public Vector2 Position { get; set; }
 		/// <summary>

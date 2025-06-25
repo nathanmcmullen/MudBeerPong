@@ -6,6 +6,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
+@layout Layout.MobileLayout
 
 @rendermode InteractiveServer
 
@@ -18,31 +19,25 @@
 }
 else
 {
+        Team team1 = _game.Teams?[0]!;
+        Team team2 = _game.Teams?[1]!;
 
-    <MudGrid Justify="Justify.Center">
-        <MudItem xs="12" md="6" lg="4">
-            <MudField @bind-Value="_game.Name" Variant="Variant.Outlined" Label="Game Name" />
-            <MudField @bind-Value="_game.Description" Variant="Variant.Outlined" Label="Description" />
-            <MudList T="string">
-                @foreach (var team in _game.Teams ?? [])
-                {
-                    <MudListItem>
-                        <ChildContent>
-                            <MudStack Row>
-                                <MudText Class="align-self-center" Typo="Typo.h6" Align="Align.Center">@team.Name</MudText>
-                                <MudTooltip Class="align-contents-center" Text="@(string.Join(", ", team.Players?.Select(p => p.Name) ?? []))">
-                                    <MudChip Color="Color.Info" Size="Size.Small" Class="ml-2">@team.Players?.Count()</MudChip>
-                                </MudTooltip>
-                                <MudSpacer />
-                                <MudText Class="align-self-center mr-2" Typo="Typo.body2" Align="Align.Center">@((team.Board?.InitialPositions == null ? "0" : team.Board.InitialPositions.Count)) Cups</MudText>
+        <MudText Typo="Typo.h4" Align="Align.Center">@team1.Name</MudText>
+        <BeerPongBoardLayout @bind-Cups="team1.Cups" OnCupSelected="(cup) => CupClicked(cup, team1)" />
+        <MudToolBar Gutters="false">
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Class="mr-4" OnClick="MissedShot">Missed Shot</MudButton>
+            <MudButton Variant="Variant.Filled">Player Stats</MudButton>
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Primary">
+                <MudMenuItem>Rerack Cups</MudMenuItem>
+                <MudMenuItem>Shot History</MudMenuItem>
+                <MudMenuItem>End Game</MudMenuItem>
+            </MudMenu>
 
-                            </MudStack>
-                        </ChildContent>
-                    </MudListItem>
-                }
-            </MudList>
-        </MudItem>
-    </MudGrid>
+            <MudSpacer />
+        </MudToolBar>
 
+        <BeerPongBoardLayout @bind-Cups="team2.Cups" OnCupSelected="(cup) => CupClicked(cup, team2)" Reverse />
+        <MudText Typo="Typo.h4" Align="Align.Center">@team2.Name</MudText>
 }
 

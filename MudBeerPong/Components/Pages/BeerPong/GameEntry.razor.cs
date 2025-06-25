@@ -106,6 +106,8 @@ namespace MudBeerPong.Components.Pages.BeerPong
 								// This player is new, must be added to the database
 								context.Players.Add(player);
 								await context.SaveChangesAsync();
+
+								linkedPlayers.Add(player);
 							}
 							else
 							{
@@ -161,6 +163,7 @@ namespace MudBeerPong.Components.Pages.BeerPong
 				}
 				// Create the game with linked teams
 				_game.Teams = linkedTeams;
+				_game.StartTime = DateTime.Now;
 				context.Games.Add(_game);
 				await context.SaveChangesAsync();
 

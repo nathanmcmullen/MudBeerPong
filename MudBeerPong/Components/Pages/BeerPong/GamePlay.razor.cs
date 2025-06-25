@@ -61,6 +61,12 @@ namespace MudBeerPong.Components.Pages.BeerPong
 					{
 						_game.Teams[i].Board = _game.Teams[i].GetStartingBoard(_game, context);
 						_game.Teams[i].Cups = _game.Teams[i].Board!.InitialPositions;
+
+						// Apply shots to board
+						if (_game.Shots != null && _game.Shots.Count > 0)
+						{
+							_game.Teams[i].Cups = _game.Teams[i].Board!.ApplyShots(_game.Shots.Where(s => s.TargetTeam?.Id == _game.Teams[i].Id).ToList());
+						}
 					}
 				}
 

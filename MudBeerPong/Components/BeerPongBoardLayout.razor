@@ -70,6 +70,7 @@
     [Parameter] public List<CupModel> Cups { get; set; } = new();
     [Parameter] public EventCallback<List<CupModel>> CupsChanged { get; set; }
     [Parameter] public EventCallback<CupModel> OnCupSelected { get; set; }
+    [Parameter] public List<CupModel>? CupSizeTemplate { get; set; }
     [Parameter] public int? Width { get; set; } // in px
     [Parameter] public int? Height { get; set; } // in px
     [Parameter] public bool Reverse { get; set; } // Render cups upside down (so they can face the other team)
@@ -107,10 +108,11 @@
         else
         {
             // In view mode, use the cups' positions to determine grid size
-            if (Cups.Count > 0)
+            var templateCups = CupSizeTemplate ?? Cups;
+            if (templateCups.Count > 0)
             {
-                var maxRow = Cups.Max(c => c.Row);
-                var maxCol = Cups.Max(c => c.Column);
+                var maxRow = templateCups.Max(c => c.Row);
+                var maxCol = templateCups.Max(c => c.Column);
                 GridRows = Array.IndexOf(DefaultRowLabels, maxRow) + 1;
                 GridColumns = maxCol;
                 RowLabels = DefaultRowLabels.Take(GridRows).ToArray();

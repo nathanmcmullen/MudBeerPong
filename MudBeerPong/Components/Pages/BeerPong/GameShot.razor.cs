@@ -15,23 +15,21 @@ namespace MudBeerPong.Components.Pages.BeerPong
 		public bool? Sunk { get; set; }
 
 		[SupplyParameterFromQuery]
-		public int? Type { get; set; }
-
-		[SupplyParameterFromQuery]
 		public string? CupPosition { get; set; }
 
 		[SupplyParameterFromQuery(Name = "target")]
 		public string? TargetHash { get; set; }
 
 		CupModel? SunkCup;
-		HitType? _HitType;
-		MissType? _MissType;
 
 		Game? _game;
 
 		MudStepperExtended _stepper = default!;
 
 		Shot _shot = new Shot();
+
+		bool skippedTeam = false;
+		bool skippedCup = false;
 
 		protected override async Task OnInitializedAsync()
 		{
@@ -67,52 +65,52 @@ namespace MudBeerPong.Components.Pages.BeerPong
 			{
 				_shot.Game = _game;
 				// If the game was loaded successfully, process the shot parameters
+
 				if (Sunk.HasValue && Sunk.Value)
 				{
-					if (CupPosition != null)
+					// If the shot was sunk, set the cup position
+					if (!string.IsNullOrEmpty(CupPosition))
 					{
 						SunkCup = new CupModel(CupPosition);
 						_shot.CupPosition = SunkCup;
 					}
-					if (Type.HasValue)
+
+					// If a target hash is provided, decode it to get the target team
+					if (!string.IsNullOrEmpty(TargetHash))
 					{
-						_HitType = (HitType)Type.Value;
-						_shot.HitType = _HitType;
+						var targetId = DecodeSingleHash(TargetHash);
+						if (targetId.HasValue)
+						{
+							_shot.TargetTeam = _game.Teams?.FirstOrDefault(t => t.Id == targetId.Value);
+							if (_game.Teams.Count == 2)
+							{
+								_shot.ShootingTeam = _game.Teams.FirstOrDefault(t => t.Id != targetId.Value);
+							}
+							if (_shot.TargetTeam == null)
+							{
+								Snackbar.Add("Target team not found.", Severity.Error);
+								return;
+							}
+						}
+						else
+						{
+							Snackbar.Add("Invalid target hash.", Severity.Error);
+							return;
+						}
 					}
 				}
-				else if (Sunk.HasValue && !Sunk.Value)
-				{
-					if (Type.HasValue)
-					{
-						_MissType = (MissType)Type.Value;
-						_shot.MissType = _MissType;
-					}
-				}
 
-				// Find the suggested team based on the TeamHash
-				if (!string.IsNullOrEmpty(TargetHash) && _game.Teams != null)
-				{
-
-					int? teamId = DecodeSingleHash(TargetHash);
-
-					if (teamId == null)
-					{
-						Snackbar.Add("Invalid suggested team.", Severity.Warning);
-						return;
-					}
-
-					var target = _game.Teams.FirstOrDefault(t => t.Id == teamId);
-
-					if (target == null)
-					{
-						Snackbar.Add("Team not found.", Severity.Warning);
-					}
-					else
-					{
-						_shot.TargetTeam = target;
-					}
-				}
 			}
+		}
+
+		protected override async Task OnAfterRenderAsync(bool firstRender)
+		{
+			if (firstRender)
+			{
+				// Prompt the stepper to consider first skip
+				await SkipIfRequired(StepChangeDirection.Forward, _stepper.GetActiveIndex());
+			}
+			await base.OnAfterRenderAsync(firstRender);
 		}
 
 		async Task<bool> LoadGame(int id)
@@ -174,16 +172,22 @@ namespace MudBeerPong.Components.Pages.BeerPong
 			}
 			using (var context = await DbContextFactory.CreateDbContextAsync())
 			{
-				var targetTeam = new Team
-				{
-					Id = _shot.TargetTeam?.Id ?? 0,
-				};
-				var shotTeam = new Team
-				{
-					Id = _shot.ShootingTeam.Id,
-				};
+				context.Entry(_shot).State = EntityState.Added;
 
+				context.Entry(_shot).Property("ShootingTeamId").CurrentValue = _shot.ShootingTeam.Id;
+				context.Entry(_shot).Property("TargetTeamId").CurrentValue = _shot.TargetTeam.Id;
+				context.Entry(_shot).Property("PlayerId").CurrentValue = _shot.Player.Id;
+				context.Entry(_shot).Property("GameId").CurrentValue = _game.Id;
 
+				_shot.ShotTime = DateTime.Now;
+				if (_shot.CupPosition != null)
+				{
+					_shot.CupRemoved = true; // Set cup removed if the shot is sunk
+				}
+				else
+				{
+					_shot.CupRemoved = false; // If no cup position, it is a miss
+				}
 
 				await context.SaveChangesAsync();
 			}
@@ -192,7 +196,26 @@ namespace MudBeerPong.Components.Pages.BeerPong
 			GoBack();
 		}
 
-		
+		private async Task<bool> SkipIfRequired(StepChangeDirection direction, int targetIndex)
+		{
+			// Check if the target index is marked for skip
+			if (targetIndex == 0 && (Sunk ?? false) && !skippedTeam)
+			{
+				// Skip team selection step
+				skippedTeam = true; // Raise the skip flag
+				await _stepper.CompleteStep(targetIndex);
+				return true;
+			}
+			else if (targetIndex == 2 && (Sunk ?? false) && !skippedCup)
+			{
+				// Skip cup selection step
+				skippedCup = true; //  Raise the skip flag
+				await _stepper.CompleteStep(targetIndex);
+				return true;
+			}
+
+			return false;
+		}
 
 		private async Task TeamClicked(Team team)
 		{

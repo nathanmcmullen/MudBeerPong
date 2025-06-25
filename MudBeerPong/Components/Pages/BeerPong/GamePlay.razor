@@ -22,8 +22,8 @@ else
         Team team1 = _game.Teams?[0]!;
         Team team2 = _game.Teams?[1]!;
 
-        <MudText Typo="Typo.h4" Align="Align.Center">@team1.Name</MudText>
-        <BeerPongBoardLayout @bind-Cups="team1.Cups" OnCupSelected="(cup) => CupClicked(cup, team1)" />
+    <MudText Typo="Typo.h4" Align="Align.Center">@team1.Name <MudChip T="string" Color="Color.Info" Class="ml-2">@(_game.Shots.Where(s => s.ShootingTeam.Id == team1.Id).Count()) shot(s)</MudChip></MudText>
+    <BeerPongBoardLayout @bind-Cups="team1.Cups" CupSizeTemplate="team1.Board.InitialPositions" OnCupSelected="(cup) => CupClicked(cup, team1)" />
         <MudToolBar Gutters="false">
             <MudSpacer />
             <MudButton Variant="Variant.Filled" Class="mr-4" OnClick="MissedShot">Missed Shot</MudButton>
@@ -37,7 +37,7 @@ else
             <MudSpacer />
         </MudToolBar>
 
-        <BeerPongBoardLayout @bind-Cups="team2.Cups" OnCupSelected="(cup) => CupClicked(cup, team2)" Reverse />
-        <MudText Typo="Typo.h4" Align="Align.Center">@team2.Name</MudText>
+        <BeerPongBoardLayout @bind-Cups="team2.Cups" CupSizeTemplate="team2.Board.InitialPositions" OnCupSelected="(cup) => CupClicked(cup, team2)" Reverse />
+    <MudText Typo="Typo.h4" Align="Align.Center">@team2.Name  <MudChip T="string" Color="Color.Info" Class="ml-2">@(_game.Shots.Where(s => s.ShootingTeam.Id == team2.Id).Count()) shot(s)</MudChip></MudText>
 }
 

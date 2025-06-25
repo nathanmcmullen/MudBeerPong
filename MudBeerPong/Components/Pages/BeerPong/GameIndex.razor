@@ -1,0 +1,62 @@
+﻿@page "/"
+@using Sqids
+
+@inject SqidsEncoder<int> Hasher
+@inject ISnackbar Snackbar
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject NavigationManager NavigationManager
+
+@layout Layout.MobileLayout
+
+@rendermode InteractiveServer
+
+<PageTitle>Beer Pong Games</PageTitle>
+
+        <MudText Typo="Typo.h3" GutterBottom="true">Beer Pong Games</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth OnClick="@(() => NavigationManager.NavigateTo("/game/new"))">New Game</MudButton>
+        <MudList T="string">
+            @if (games == null)
+            {
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+            }
+            else if (games.Count == 0)
+            {
+                <MudListItem>No games found.</MudListItem>
+            }
+            else
+            {
+                @foreach (var game in games)
+                {
+                    <MudListItem OnClick="@(() => NavigationManager.NavigateTo($"/game/play/{Hasher.Encode(game.Id)}"))">
+                        <MudStack Row>
+                    <MudTooltip Text="@(string.Join(", ", game.Teams[0].Players))">
+                    <MudChip Label="true" T="string">@game.Teams[0].Name</MudChip>
+                    </MudTooltip>
+                    <MudText Typo="Typo.h6" Class="align-content-center">vs</MudText>
+                    <MudTooltip Text="@(string.Join(", ", game.Teams[1].Players))">
+                        <MudChip Label="true" T="string">@game.Teams[1].Name</MudChip>
+                    </MudTooltip>
+                    <MudSpacer />
+                    <MudText Typo="Typo.body2" Class="text-secondary">@game.StartTime.ToString("g")</MudText>
+                        </MudStack>
+                    </MudListItem>
+                }
+            }
+        </MudList>
+
+@code {
+
+    private List<Game>? games;
+    protected override async Task OnInitializedAsync()
+    {
+        using var dbContext = await DbContextFactory.CreateDbContextAsync();
+        games = await dbContext.Games
+            .Include(g => g.Teams)
+            .ThenInclude(t => t.Players)
+            .ToListAsync();
+        if (games == null || games.Count == 0)
+        {
+            Snackbar.Add("No games found.", Severity.Info);
+        }
+    }
+}

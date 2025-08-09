@@ -1,5 +1,7 @@
 ﻿@page "/home"
 
+@rendermode InteractiveServer
+
 <PageTitle>Home</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
@@ -12,9 +14,25 @@
     </MudLink>
 </MudAlert>
 
-<BeerPongBoardLayout Cups="StandardBoardLayouts.ThreeBase" />
-<BeerPongBoardLayout Cups="StandardBoardLayouts.ThreeBase"  Reverse/>
-
+<MudStepperExtended @ref="_stepper">
+    <MudStepExtended Title="Step 1" Icon="@Icons.Material.Filled.Check">
+        <MudText Typo="Typo.h6" GutterBottom="true">This is the first step</MudText>
+        <MudText Typo="Typo.body2">You can add any content here, such as forms, text, or other components.</MudText>
+    </MudStepExtended>
+    <MudStepExtended Title="Step 2" Icon="@Icons.Material.Filled.Check">
+        <MudText Typo="Typo.h6" GutterBottom="true">This is the second step</MudText>
+        <MudText Typo="Typo.body2">You can continue adding content in subsequent steps.</MudText>
+    </MudStepExtended>
+    <MudStepExtended Title="Step 3" Icon="@Icons.Material.Filled.Check">
+        <MudText Typo="Typo.h6" GutterBottom="true">This is the third step</MudText>
+        <MudText Typo="Typo.body2">Feel free to customize each step as needed.</MudText>
+    </MudStepExtended>
+</MudStepperExtended>
+<MudButtonGroup>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CompleteStep">Complete Current Step</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="CompleteFirstTwoSteps">Complete First Two Steps</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ResetStepper">Reset Stepper</MudButton>
+</MudButtonGroup>
 
 <br />
 <MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
@@ -61,3 +79,36 @@
         More details
     </MudLink>
 </MudText>
+
+@code {
+    private MudStepperExtended? _stepper;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // This is where you can initialize the stepper or perform any setup needed after the first render
+            await CompleteFirstTwoSteps();
+            StateHasChanged();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task CompleteStep()
+    {
+        await _stepper.CompleteStep(_stepper.GetActiveIndex(), true);
+
+    }
+    private async Task CompleteFirstTwoSteps()
+    {
+        await _stepper.CompleteStep(0);
+        await _stepper.CompleteStep(1);
+        await _stepper.SetActiveIndex(2);
+    }
+    private void ResetStepper()
+    {
+        _stepper.Reset();
+    }
+
+
+}

@@ -28,7 +28,7 @@
 <PageTitle>New Shot</PageTitle>
 
 <MudToolBar Gutters="false">
-    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Color="Color.Primary" Size="Size.Large" Class="mr-2 pl-0" />
+    <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" OnClick="GoBack" Color="Color.Primary" Size="Size.Large" />
     <MudText Typo="Typo.h4">New Shot</MudText>
 </MudToolBar>
 <MudStepperExtended @ref="_stepper" ContentStyle="margin-left:-24px;" MobileView Linear PreventStepChangeAsync="new Func<StepChangeDirection, int, Task<bool>>(SkipIfRequired)">

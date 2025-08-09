@@ -1,0 +1,30 @@
+﻿@page "/game/leaderboard"
+@using Sqids
+
+@inject SqidsEncoder<int> Hasher
+@inject ISnackbar Snackbar
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject NavigationManager NavigationManager
+
+@layout Layout.MobileLayout
+
+@rendermode InteractiveServer
+
+
+<PageTitle>Leaderboard</PageTitle>
+<MudText Typo="Typo.h3" GutterBottom="true">Leaderboard</MudText>
+<MudDateRangePicker @bind-DateRange="_dateRange" @bind-DateRange:after="LoadLeaderboard" Label="Select Date Range"/>
+<MudTable Items="@_leaderboard" Hover="true" Breakpoint="Breakpoint.None">
+    <HeaderContent>
+        <MudTh>Rank</MudTh>
+        <MudTh>Player</MudTh>
+        <MudTh>Cups Sunk</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Rank">@context.Rank</MudTd>
+        <MudTd DataLabel="Player">@context.Name</MudTd>
+        <MudTd DataLabel="Cups Sunk">@context.SunkShots</MudTd>
+    </RowTemplate>
+
+</MudTable>
+<MudText Typo="Typo.caption" Class="mt-4">Found <b>@gameCount</b> game(s)</MudText>

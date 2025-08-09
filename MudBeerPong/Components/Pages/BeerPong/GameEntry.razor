@@ -86,15 +86,15 @@
                         <MudTabPanel Text="@team.Name">
                         <MudGrid Justify="Justify.SpaceBetween" Class="my-2">
                                 <MudItem xs="12" sm="6" md="4">
-                                <MudMenu Label="Standard Boards" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Variant="Variant.Filled">
+                                <MudMenu Label="Standard Boards" Class="mr-2" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Variant="Variant.Filled">
                                     <MudMenuItem OnClick="() => team.Board = StandardBoardLayouts.ThreeBaseBoard">Three Base</MudMenuItem>
                                     <MudMenuItem OnClick="() => team.Board = StandardBoardLayouts.FourBaseBoard">Four Base</MudMenuItem>
                                 </MudMenu>
                                 </MudItem>
-                            <MudItem xs="12" sm="6" md="4">
-                                <MudButton class="mx-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => ApplyBoardToAll(team.Board))">Apply All</MudButton>
+                            <MudItem xs="6" sm="6" md="4">
+                                <MudButton Class="mr-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => ApplyBoardToAll(team.Board))">Apply All</MudButton>
     </MudItem>
-                            <MudItem xs="12" sm="6" md="4">
+                            <MudItem xs="6" sm="6" md="4">
                                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => team.Board?.AddCup())">Add Cup</MudButton>
                             </MudItem>
                             </MudGrid>

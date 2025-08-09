@@ -30,7 +30,7 @@ namespace MudBeerPong.Components.Pages.BeerPong
 
 		bool skippedTeam = false;
 		bool skippedCup = false;
-
+		bool skippedPlayer = false;
 		protected override async Task OnInitializedAsync()
 		{
 			if (string.IsNullOrEmpty(GameId))
@@ -101,6 +101,7 @@ namespace MudBeerPong.Components.Pages.BeerPong
 				}
 
 			}
+
 		}
 
 		protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -108,9 +109,36 @@ namespace MudBeerPong.Components.Pages.BeerPong
 			if (firstRender)
 			{
 				// Prompt the stepper to consider first skip
-				await SkipIfRequired(StepChangeDirection.Forward, _stepper.GetActiveIndex());
+				await MovePastCompletedSteps();
+				StateHasChanged();
 			}
 			await base.OnAfterRenderAsync(firstRender);
+		}
+
+		async Task MovePastCompletedSteps()
+		{
+			int nextIndex = 0;
+			if (_shot.ShootingTeam != null)
+			{
+				await _stepper.CompleteStep(0);
+				nextIndex++;
+
+			}
+			if (_shot.ShootingTeam?.Players?.Count() == 1)
+			{
+				_shot.Player = _shot.ShootingTeam.Players.FirstOrDefault();
+				await _stepper.CompleteStep(1);
+				nextIndex++;
+
+			}
+			if (_shot.CupPosition != null)
+			{
+				await _stepper.CompleteStep(2);
+				nextIndex++;
+			}
+
+			await _stepper.SetActiveIndex(nextIndex);
+
 		}
 
 		async Task<bool> LoadGame(int id)
